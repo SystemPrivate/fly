@@ -1,0 +1,113 @@
+compile 'com.github.bumptech.glide:glide:4.0.0'
+compile 'com.jude:rollviewpager:1.4.5'
+compile 'com.squareup.okhttp3:okhttp:3.9.0'
+compile 'com.androidkun:pulltorefreshrecyclerview:1.0.6'
+compile 'com.android.support:design:26.+'
+compile 'com.google.code.gson:gson:2.2.4'
+compile 'com.android.support:recyclerview-v7:26.+'
+compile 'com.jakewharton:butterknife:8.8.1'
+annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private void initData() {
+//        初始化retrofit对象
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Constant.URL_BASE)
+//                支持Gson转换
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+//调用接口里边的方法
+        MyServletInterface myServletInterface = retrofit.create(MyServletInterface.class);
+//     返回一个call对象
+        Call<MyBean> call = myServletInterface.getNetWorkData();
+
+        call.enqueue(new Callback<MyBean>() {
+            //            成功
+            @Override
+            public void onResponse(Call<MyBean> call, Response<MyBean> response) {
+                Log.e("TAG", "onResponse: ---->" + Thread.currentThread().getId());
+                if (response != null) {
+//                    listview 上面展示的数据
+                    List<MyBean.DataBeanX.DataBean> listdata = response.body().getData().getData();
+
+//保存数据到数据库
+
+
+                    MyTableDao myTableDao = MyApplication.getApplication().getmDaoSession().getMyTableDao();
+
+                    List<MyTable> datatable = new ArrayList<MyTable>();
+                    for (int i = 0; i < listdata.size(); i++) {
+//                        一条记录
+                        MyTable myTable = new MyTable(null, listdata.get(i).getImg1(), listdata.get(i).getTitle());
+                        myTableDao.insert(myTable);
+                        datatable.add(myTable);
+                    }
+                    MyAdapter myAdapter = new MyAdapter(datatable, MainActivity.this);
+                    lv.setAdapter(myAdapter);
+
+                }
+            }
+
+            //失败
+            @Override
+            public void onFailure(Call<MyBean> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "网络请求失败", Toast.LENGTH_SHORT).show();
+                getDataFromDB();
+            }
+        });
+    }
